@@ -140,12 +140,13 @@ For item in writingData:
 # turns out we don't even need this loop we can get by with the following
 # block until all preceding threads have mutated
 
-  For item in writingData:
-   If item.threadId % threads.size() == thread.instanceNumber:
-    item.execute() # all mutation
-    item.completed = True
+For item in writingData:
+ If item.threadId % threads.size() == thread.instanceNumber:
+   item.execute() # all mutation
+   item.completed = True
+ Else
    While !item.completed:
-    Thread yield()
+     Thread yield() # wait for the other thread to mutate data
 Thread.status = FinishedWriting
 Waiting = True
 While waiting:
