@@ -116,7 +116,7 @@ There is therefore the following phases:
  * Blocking=False
  * EVENT BUFFER READING
 
- * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedReading||FinishedWritingData
+ * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedReading)
  * EVENT BUFFER WRITING
  * Remember the head position. We shall use this to implement incremental sort.
  * All threads enqueue to event ringbuffer
@@ -124,7 +124,23 @@ There is therefore the following phases:
  * The last thread decided to sort the RingBuffer. The head and tail might not need to change if we only sort new inserted events coming in.
  * The phase changes to WRITING DATA. If a WRITING DATA is for a thread that is not us or were not interested in, set Blocking = true.
  * One thread detects it's head of the queue for writing data and does data modification in memory. It's guaranteed to be the only thread modifying data in order. Sets thread status to FINISHED WRITING DATA
+ * Need to order Loops over write events repeatedly until blocking is false. Could block on each item independently in a while loop
+ * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedWriting||FinishedWritingData)
  * All threads process events, queueing up WRITE events, WRITING DATAs events
+
+```
+Blocking = false
+For item in writingdata:
+  If item.threadId % thread.sequenceNumber != 0:
+   Blocking = true
+   Break
+While blocked:
+  For item in writingData:
+   If item.threadId % thread.sequenceNumber == 0:
+    Break
+   While !item.completed:
+    Thread yield()
+```
 
 We need to mark events as processed when finished. We skip enqueuing events to local read buffers that are finished. This gives us error handling.
 
