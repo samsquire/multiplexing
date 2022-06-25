@@ -368,7 +368,7 @@ previous = {}
 for item in reads:
  If item.sortStream in previous:
   Item.dependencies.upstream = previous[item.sortStream]
-  
+ Previous[item.sortStream] = item
 ```
 
 With this approach we receive a global ordering of events - they are scheduled by the sort.
