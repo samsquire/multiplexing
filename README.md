@@ -31,7 +31,7 @@ There is a scheduler for kernel threads and a scheduler for lightweight threads.
 
 # time dimension scan scheduling
 
-Have a shared buffer of events that all threads use.
+Have a shared thread safe ringbuffer of events that all threads use.
 
 Or a buffer of pointers for events that are dependent on other threads.
 
@@ -87,5 +87,41 @@ At the beginning of a thread/green thread tick, we call eventbuffef.block() and 
 When a thread has enqueued all its reads to the event ringbuffer it marks itself as FINISHED_READING. It then calls block() on the event ringbuffer which waits until all threads have FINISHED READING.
 
 It then marks itself as WRITING and greedily Enqueues all its writes. Then it marks itself as FINISHED_WRITING and proceeds to process events.
+
+When a thread is in processing mode, it can queue up modifications to data structures for action in WRITING_DATA mode.
+
+WRITING DATA serialises modifications to in memory data structures so all threads get the same perspective of in memory data.
+
+This works by a compareAndSwap on the event ringbuffer for mode WRITING_DATA.
+
+Only one thread shall succeed on setting this flag. Those threads that fail shall block retrying.
+
+How to enforce ordering of WRITING DATA changes?
+
+Ideally you want the WTITING DATA to be in order of requests.
+
+We could produce a synthetic event for writing data that would be sorted.
+
+This shall be sorted.
+
+We can set a local flag of BLOCKED on the green thread when we dequeue an event that is of kind WRITING DATA that is for a thread that is not us.
+
+Then if a thread dequeeues a WRITING DATA event during READING phase, it processes the writes.
+
+After the READ phase we eventbuffer.block() on one thread finished WRITING or all FINISHED READING.
+
+This serialises and orders the WRITING DATA.
+
+There is therefore the following phases:
+ * Blocking=False
+ * EVENT BUFFER READING
+ * If a WRITING DATA is for a thread that is not us or were not interested in, set Blocking = true
+ * One thread detects it's head of the queue for writing data and does data modification in memory. It's guaranteed to be the only thread modifying data in order. Sets thread status to FINISHED WRITING DATA
+ * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedReading||FinishedWritingData
+ * EVENT BUFFER WRITING
+ * All threads enqueue to event ringbuffer
+ * EVENT BUFFER.BLOCK(waitingFor=FinishedWriting)
+ * The last thread decided to sort the RingBuffer.
+ * All threads process events, queueing up WRITE events, WRITING DATAs events
 
 # Sort stopping
