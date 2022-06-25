@@ -68,4 +68,24 @@ After all events are enqueued, the RingBuffer is sorted and the RINGBUFFER chang
 
 Only one thread needs to SORT. Push, pop shall block until the state changes to the right state.
 
+# per thread state
+
+Each kernel or green thread has a buffer of pending written events and pending requests that they are waiting to read and pending event dequeuing.
+
+
+
+On each re-entrance tick each thread/green thread greedily dequeues as many work items as it can and adds it to its read buffer. It then tries to enqueue its write buffer into the event RingBuffer.
+
+It then processes events in its read buffer.
+
+The thread uses the non blocking calls to the event ringbuffer.
+
+We want threads to all be READING at the same time and WRITING at the same time, so we need some way of marking a thread's status as finished doing either of these.
+
+At the beginning of a thread/green thread tick, we call eventbuffef.block() and one of the thread checks that all threads are FINISHED_WRITING and if so, it compareAndSet the event ringbuffer status to SORTING. The first successful thread then sorts the event buffer. At the end of the sort the thread status changes to READING state of the event ringbuffer.
+
+When a thread has enqueued all its reads to the event ringbuffer it marks itself as FINISHED_READING. It then calls block() on the event ringbuffer which waits until all threads have FINISHED READING.
+
+It then marks itself as WRITING and greedily Enqueues all its writes. Then it marks itself as FINISHED_WRITING and proceeds to process events.
+
 # Sort stopping
