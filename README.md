@@ -119,6 +119,7 @@ There is therefore the following phases:
  * One thread detects it's head of the queue for writing data and does data modification in memory. It's guaranteed to be the only thread modifying data in order. Sets thread status to FINISHED WRITING DATA
  * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedReading||FinishedWritingData
  * EVENT BUFFER WRITING
+ * Remember the head position. We shall use this to implement incremental sort.
  * All threads enqueue to event ringbuffer
  * EVENT BUFFER.BLOCK(waitingFor=FinishedWriting)
  * The last thread decided to sort the RingBuffer. The head and tail might not need to change if we only sort new inserted events coming in.
