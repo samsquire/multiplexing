@@ -8,7 +8,9 @@ This repository describes a primitive for describing multiplexations.
 Ultimately multiplexing is the volcano pattern of multiple independent virtual machines running in parallel concurrently each raising events that are then ordered by a scheduler and serialised.
 
 ```
-time = new Dimension();
+time = new VirtualDimension();
+Kernel = new Dimension()
+Lightweight = new Dimension();
 scheduler = new Scheduler();
 inputs = new Source();
 ast = new Stackframe();
