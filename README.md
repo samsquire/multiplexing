@@ -124,4 +124,6 @@ There is therefore the following phases:
  * The last thread decided to sort the RingBuffer.
  * All threads process events, queueing up WRITE events, WRITING DATAs events
 
+We need to mark events as processed when finished. We skip enqueuing events to local read buffers that are finished. This gives us error handling.
+
 # Sort stopping
