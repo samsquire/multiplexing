@@ -121,7 +121,7 @@ There is therefore the following phases:
  * EVENT BUFFER WRITING
  * All threads enqueue to event ringbuffer
  * EVENT BUFFER.BLOCK(waitingFor=FinishedWriting)
- * The last thread decided to sort the RingBuffer.
+ * The last thread decided to sort the RingBuffer. The head and tail might not need to change if we only sort new inserted events coming in.
  * All threads process events, queueing up WRITE events, WRITING DATAs events
 
 We need to mark events as processed when finished. We skip enqueuing events to local read buffers that are finished. This gives us error handling.
