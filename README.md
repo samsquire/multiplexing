@@ -264,10 +264,18 @@ Join.setRoot(Fork);
 ```
 
 ```
-For (DependencyTree tree : event.children) {
- If (tree.satisfied) {
-   // Handle event
- }
+Boolean satisfied = false;
+Current = event.dependencies;
+While (Current != Null) {
+  For (DependencyTree tree : current.dependencies.children) {
+   If (!tree.satisfied) {
+     Satisfied = false;
+   }
+  Current = current.root;
+}
+If (satisfied) {
+// Handle event
+
 }
 ```
 
