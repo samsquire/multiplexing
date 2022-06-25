@@ -385,9 +385,9 @@ At the beginning of RingBuffer.pop()
 ```
 For item in LastReads:
  If item.completed:
-  Thread. = .incrementAndGet()
+  Thread.tail = rb.tail.incrementAndGet()
   Else:
    Break
 If len(lastReads) == 0:
- 
+ Thread.tail = rb.tail.incrementAndGet()
 ```
