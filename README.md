@@ -338,12 +338,15 @@ If (satisfied) {
 # green thread code
 
 ```
-WritingEvents = []
-Reads = []
-Writes = []
+class State:
+ WritingEvents = []
+ Reads = []
+ Writes = []
 
-RingBuffer.tick();
-for event in reads:
+RingBuffer.tick(state);
+for event in state.reads:
+ If !event.dependencies.satisfied:
+  continue
  # do stuff with reads
  E1 = new Event()
  d = new DependencyTree()
@@ -355,4 +358,36 @@ for event in reads:
  writes.append(E1)
  writes.append(E2)
 
+```
+
+# global ordering
+
+```
+After sorting, we need to update the DependencyTree to match the order
+previous = {}
+for item in reads:
+ If item.sortStream in previous:
+  Item.dependencies.upstream = previous[item.sortStream]
+  
+```
+
+With this approach we receive a global ordering of events - they are scheduled by the sort.
+
+# RingBuffer thread head and tail updating
+
+Head and tail can only be updated when an item has truly been consumed.
+
+Push can always update the head
+Tail can only be updated when an item has been completed.
+
+
+At the beginning of RingBuffer.pop()
+```
+For item in LastReads:
+ If item.completed:
+  Thread. = .incrementAndGet()
+  Else:
+   Break
+If len(lastReads) == 0:
+ 
 ```
