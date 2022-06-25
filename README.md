@@ -128,18 +128,33 @@ There is therefore the following phases:
  * EVENT BUFFER.BLOCK(waitingFor=all threads FinishedWriting||FinishedWritingData)
  * All threads process events, queueing up WRITE events, WRITING DATAs events
 
+
+After sorting
 ```
+# find the first event that we cannot run
 Blocking = false
-For item in writingdata:
-  If item.threadId % thread.sequenceNumber != 0:
+For item in writingData:
+  If item.threadId % threads.size() != thread.instanceNumber:
    Blocking = true
    Break
-While blocked:
+# turns out we don't even need this loop we can get by with the following
+# block until all preceding threads have mutated
+
   For item in writingData:
-   If item.threadId % thread.sequenceNumber == 0:
-    Break
+   If item.threadId % threads.size() == thread.instanceNumber:
+    item.execute() # all mutation
+    item.completed = True
    While !item.completed:
     Thread yield()
+Thread.status = FinishedWriting
+Waiting = True
+While waiting:
+ Waiting = False
+ For thread in threads:
+   If thread.status != FinishedWriting
+     Waiting = True
+# can move into the next phase 
+ 
 ```
 
 We need to mark events as processed when finished. We skip enqueuing events to local read buffers that are finished. This gives us error handling.
