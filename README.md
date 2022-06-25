@@ -126,4 +126,22 @@ There is therefore the following phases:
 
 We need to mark events as processed when finished. We skip enqueuing events to local read buffers that are finished. This gives us error handling.
 
+# load balancing and work stealing
+
+By merit of everyone dequeuing at the same time and everyone writing at the same time, we can implement work stealing in the scheduler.
+
+As a process is dequeuing items in the READ stage it can create a local buffer of the queues of each thread.
+
+If the local thread has no work, it can change the owner of half of the work in that thread's queue.
+
+Load balancing.
+
+We can use the modulo operator to decide if some work is for a thread.
+
+How to stop threads fighting over work stealing? We can introduce a phase that only one thread can enter called WORK_STEAL. This is a compare and swap on the event ringbuffer.
+
+Every other thread that fails to set it, doesn't matter.
+
+All threads shall block waiting until the work stealing is complete.
+
 # Sort stopping
