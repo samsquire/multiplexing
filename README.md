@@ -145,4 +145,132 @@ Every other thread that fails to set it, doesn't matter.
 
 All threads shall block waiting until the work stealing is complete.
 
+If you want to parallelize multiple workers on the same data stream, you can use the same thread Identifier and all threads shall use the same event data.
+
+If you want to parallelize work on a particular event, you need to synthesise synthetic fork events with data of each fork.
+
+# joining and dependency trees
+
+You can synthesise a join event which depends on other events being completed
+
+```
+class Event {
+ Public List<Event> dependencies;
+}
+```
+
+Alternatively we need some data structure that is cheap to test.
+
+As these functions shall be executed on every event.
+
+You might want a tree based hierarchy, in which case it's cheaper to test for a prefix or suffix.
+
+
+```
+class Event {
+ Public DependencyTree dependencies;
+ Public Boolean complete;
+}
+class DependencyTree {
+ Public List<Event> dependencies;
+ Public Boolean satisfied;
+}
+```
+
+The dependency tree stores a list of dependencies but updates completeness when any of its dependents change. This way we don't need to iterate against every item in the tree.
+
+For more complicated dependency trees we want to ripple out satisfiedness to parent branches.
+
+The solution might be something similar to:
+
+```
+class Event {
+ Public DependencyTree dependencies;
+ Public Boolean complete;
+ Public markComplete() {
+  This.complete = complete;
+  Boolean allComplete = true;
+  DependencyTree current = dependencies;
+  while (current != Null) {
+   allComplete = true;
+   For (Event event : current.events) {
+    If (!event.complete) { allComplete = false;}
+   }
+   For (DependencyTree tree : current.children) {
+    If (!tree.satisfied) { allComplete = false; }
+   }
+   If (allComplete) {
+    current.satisfied = true;
+   }
+   current = current.root;
+  }
+  
+ }
+}
+class DependencyTree {
+ public DependencyTree root;
+ Public List<Event> events;
+ Public Boolean satisfied;
+ Public DependencyTree children;
+
+}
+```
+
+Building the DependencyTree is interesting.
+
+Each line of code has a new dependency tree root with the previously generated DependencyTree generated so far as children.
+
+If there's a fork of parallelism there is a new DependencyTree to represent the fork.
+
+To represent a join we create a new DependencyTree with the forked as children.
+
+```
+class Event {
+ public void run() {
+  
+ }
+}
+S1 = new DependencyTree();
+E1 = new Event() {
+ @Override
+ Public void run(Context context) {
+  // Do something
+ }
+}
+E1.setDependencies(S1);
+S1.addEvent(E1);
+Fork = new DependencyTree()
+Fork.setRoot(S1)
+left = new DependencyTree()
+right = new DependencyTree();
+ForkEvent = new Event();
+Fork.addEvent(ForkEvent);
+ForkEvent.setDependencies(Fork);
+right.setRoot(Fork);
+left_event = new Event();
+right_event = new Event();
+left.addEvent(left_event);
+left_event.setDependencies(left)
+right_event.setDependencies(right);
+right.addEvent(right_event);
+join_event = new Event();
+join = new DependencyTree();
+
+join.addDependencyTree(left);
+join.addDependencyTree(right);
+Join.setRoot(Fork);
+
+
+```
+
+```
+For (DependencyTree tree : event.children) {
+ If (tree.satisfied) {
+   // Handle event
+ }
+}
+```
+
 # Sort stopping
+
+
