@@ -224,6 +224,27 @@ If there's a fork of parallelism there is a new DependencyTree to represent the 
 
 To represent a join we create a new DependencyTree with the forked as children.
 
+The following code:
+
+```
+E1 {
+
+}
+Fork = {
+ Left {
+
+ }
+ Right {
+
+ }
+}
+Join Fork
+JoinEvent {
+
+}
+```
+
+Should turn into this: 
 ```
 class Event {
  public void run() {
