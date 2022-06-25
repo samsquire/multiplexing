@@ -335,4 +335,24 @@ If (satisfied) {
 
 # Sort stopping
 
+# green thread code
 
+```
+WritingEvents = []
+Reads = []
+Writes = []
+
+RingBuffer.tick();
+for event in reads:
+ # do stuff with reads
+ E1 = new Event()
+ d = new DependencyTree()
+ E.setDependency(d1)
+ E2 = new Event()
+ D2 = new DependencyTree()
+ D2.setRoot(D1)
+ E2.setDependency(d2)
+ writes.append(E1)
+ writes.append(E2)
+
+```
